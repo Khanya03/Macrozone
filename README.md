@@ -1,56 +1,55 @@
-# Welcome to your Expo app 👋
+# MacroZone 🥗
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+A mobile app for tracking daily macronutrients (calories, protein, carbs, and fat). Built with React Native, Expo, and TypeScript.
 
-## Get started
+## Features
 
-1. Install dependencies
+- **Log meals** — add a meal with its calories, protein, carbs, and fat
+- **Daily totals at a glance** — a macro grid on the home screen sums up everything logged for the day against daily goals
+- **Recent meals & full history** — see your latest meals on the home screen, or browse the full list on a dedicated screen
+- **Delete meals** — long-press (or click, on web) any meal to remove it
+- **Share / copy summary** — share your daily macro summary via the native share sheet, or copy it straight to the clipboard
+- **Meal reminders** — opt in to daily push notifications reminding you to log lunch and dinner
+- **Haptic feedback** — subtle haptics on key actions (adding a meal, deleting a meal) for a more native feel
+- **Persistent local storage** — all data is saved on-device with AsyncStorage, no backend required
 
-   ```bash
-   npm install
-   ```
+## Tech stack
 
-2. Start the app
+- [React Native](https://reactnative.dev/) + [Expo](https://expo.dev/) (SDK 55)
+- [TypeScript](https://www.typescriptlang.org/)
+- [expo-router](https://docs.expo.dev/router/introduction/) for file-based navigation
+- [@react-native-async-storage/async-storage](https://react-native-async-storage.github.io/async-storage/) for local persistence
+- expo-notifications, expo-haptics, expo-clipboard for native device features
 
-   ```bash
-   npx expo start
-   ```
+## Project structure
 
-In the output, you'll find options to open the app in a
+## Getting started
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+1. Install dependencies:
 
 ```bash
-npm run reset-project
+   npm install
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+2. Start the development server:
 
-### Other setup steps
+```bash
+   npx expo start
+```
 
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
+3. From the Expo CLI output, open the app in:
+   - [Expo Go](https://expo.dev/go) on your phone (scan the QR code)
+   - an iOS Simulator (press `i`)
+   - an Android Emulator (press `a`)
+   - a web browser (press `w`)
 
-## Learn more
+## What I built / learned
 
-To learn more about developing your project with Expo, look at the following resources:
+This project was built to practice core mobile development concepts: file-based navigation with expo-router, local data persistence with AsyncStorage, native device APIs (notifications, haptics, clipboard, share), and structuring a React Native app with clean separation between UI components, storage logic, and styling.
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+## Roadmap / possible improvements
 
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+- Replace the custom `mealsChanged` event hack with React Context for state updates
+- Add input validation on the Add Meal form
+- Add unit tests for the storage layer
+- Custom daily macro goals (currently hardcoded)
