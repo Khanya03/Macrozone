@@ -1,34 +1,45 @@
 import MealItem from '@/components/MealItem';
-import { clearAllMeals, getMeals, Meal } from '@/storage/meals';
+import { useMeals } from '@/storage/MealsContext';
 import { colors, globalStyles } from '@/style/global';
-import { useFocusEffect } from 'expo-router';
-import { useCallback, useState } from 'react';
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useState } from 'react';
+import {
+  Alert,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 
 export default function AllMealsScreen() {
-  const [meals, setMeals] = useState<Meal[]>([]);
-
-  const loadMeals = async () => {
-    const data = await getMeals();
-    setMeals(data);
-  };
+  const { meals, clearMeals } = useMeals();
+  const [clearing, setClearing] = useState(false);
 
   const handleClearAll = async () => {
-    await clearAllMeals();
-    loadMeals();
+    if (clearing) return;
+    setClearing(true);
+    try {
+      await clearMeals();
+    } catch (error) {
+      console.error('Failed to clear meals', error);
+      Alert.alert('Error', 'Could not clear meals.');
+    } finally {
+      setClearing(false);
+    }
   };
-
-  useFocusEffect(
-    useCallback(() => {
-      loadMeals();
-    }, []),
-  );
 
   return (
     <ScrollView style={globalStyles.container}>
       <View style={globalStyles.header}>
         <Text style={globalStyles.title}>All Meals</Text>
-        <TouchableOpacity onPress={handleClearAll} style={styles.clearButton}>
+        <TouchableOpacity
+          onPress={handleClearAll}
+          style={[
+            styles.clearButton,
+            clearing || meals.length === 0 ? styles.clearButtonDisabled : null,
+          ]}
+          disabled={clearing || meals.length === 0}
+        >
           <Text style={styles.clearButtonText}>Clear All</Text>
         </TouchableOpacity>
       </View>
@@ -45,7 +56,6 @@ export default function AllMealsScreen() {
               protein={meal.protein}
               carbs={meal.carbs}
               fat={meal.fat}
-              onDelete={loadMeals}
             />
           ))
         )}
@@ -65,5 +75,8 @@ const styles = StyleSheet.create({
     color: colors.background,
     fontSize: 14,
     fontWeight: '600',
+  },
+  clearButtonDisabled: {
+    opacity: 0.45,
   },
 });

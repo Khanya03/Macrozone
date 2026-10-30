@@ -12,10 +12,21 @@ export type Meal = {
 
 const MEALS_KEY = 'meals';
 
+const readMeals = async (): Promise<Meal[]> => {
+  const data = await AsyncStorage.getItem(MEALS_KEY);
+  if (data == null) return [];
+
+  const parsed: unknown = JSON.parse(data);
+  if (!Array.isArray(parsed)) {
+    throw new Error('Stored meals are not an array');
+  }
+
+  return parsed as Meal[];
+};
+
 export const getMeals = async (): Promise<Meal[]> => {
   try {
-    const data = await AsyncStorage.getItem(MEALS_KEY);
-    return data ? JSON.parse(data) : [];
+    return await readMeals();
   } catch (error) {
     console.error('getMeals AsyncStorage error:', error);
     return [];
@@ -25,43 +36,38 @@ export const getMeals = async (): Promise<Meal[]> => {
 export const addMeal = async (
   meal: Omit<Meal, 'id' | 'createdAt'>,
 ): Promise<Meal> => {
-  const meals = await getMeals();
+  const meals = await readMeals();
   const newMeal: Meal = {
     ...meal,
     id: Date.now().toString(),
     createdAt: new Date().toISOString(),
   };
+
   try {
     await AsyncStorage.setItem(MEALS_KEY, JSON.stringify([newMeal, ...meals]));
-    try {
-      if (typeof window !== 'undefined' && 'dispatchEvent' in window) {
-        window.dispatchEvent(new CustomEvent('mealsChanged'));
-      }
-    } catch {}
   } catch (error) {
     console.error('addMeal AsyncStorage error:', error);
     throw error;
   }
+
   return newMeal;
 };
 
 export const deleteMeal = async (id: string): Promise<void> => {
-  const meals = await getMeals();
+  const meals = await readMeals();
   const filtered = meals.filter((meal) => meal.id !== id);
-  await AsyncStorage.setItem(MEALS_KEY, JSON.stringify(filtered));
+
   try {
-    if (typeof window !== 'undefined' && 'dispatchEvent' in window) {
-      window.dispatchEvent(new CustomEvent('mealsChanged'));
-    }
-  } catch {}
+    await AsyncStorage.setItem(MEALS_KEY, JSON.stringify(filtered));
+  } catch (error) {
+    console.error('deleteMeal AsyncStorage error:', error);
+    throw error;
+  }
 };
 
 export const clearMeals = async (): Promise<void> => {
   try {
     await AsyncStorage.removeItem(MEALS_KEY);
-    if (typeof window !== 'undefined' && 'dispatchEvent' in window) {
-      window.dispatchEvent(new CustomEvent('mealsChanged'));
-    }
   } catch (error) {
     console.error('clearMeals AsyncStorage error:', error);
     throw error;

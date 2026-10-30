@@ -1,4 +1,4 @@
-import { deleteMeal } from '@/storage/meals';
+import { useMeals } from '@/storage/MealsContext';
 import { colors } from '@/style/global';
 import * as Haptics from 'expo-haptics';
 import { Alert, Platform, StyleSheet, Text, TouchableOpacity } from 'react-native';
@@ -10,7 +10,6 @@ type MealItemProps = {
   protein: number;
   carbs: number;
   fat: number;
-  onDelete: () => void;
 };
 
 export default function MealItem({
@@ -20,25 +19,32 @@ export default function MealItem({
   protein,
   carbs,
   fat,
-  onDelete,
 }: MealItemProps) {
-  const handleLongPress = async () => {
+  const { deleteMeal } = useMeals();
+
+  const performDelete = async () => {
+    try {
+      await deleteMeal(id);
+    } catch (error) {
+      console.error('Failed to delete meal', error);
+      Alert.alert('Error', 'Could not delete meal.');
+      return;
+    }
+
+    try {
+      if (Platform.OS !== 'web') {
+        await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+      }
+    } catch (e) {
+      console.warn('Haptics failed', e);
+    }
+  };
+
+  const handleLongPress = () => {
     if (Platform.OS === 'web' && typeof window !== 'undefined') {
       const confirmed = window.confirm(`Are you sure you want to delete "${name}"?`);
       if (confirmed) {
-        await deleteMeal(id);
-        try {
-          if (Platform.OS !== 'web') {
-            await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
-          }
-        } catch (e) {
-          console.warn('Haptics failed', e);
-        }
-        if (onDelete && typeof onDelete === 'function') {
-          onDelete();
-        } else {
-          console.warn('MealItem: onDelete prop is not a function');
-        }
+        void performDelete();
       }
       return;
     }
@@ -48,20 +54,8 @@ export default function MealItem({
       {
         text: 'Delete',
         style: 'destructive',
-        onPress: async () => {
-          await deleteMeal(id);
-          try {
-            if (Platform.OS !== 'web') {
-              await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
-            }
-          } catch (e) {
-            console.warn('Haptics failed', e);
-          }
-          if (onDelete && typeof onDelete === 'function') {
-            onDelete();
-          } else {
-            console.warn('MealItem: onDelete prop is not a function');
-          }
+        onPress: () => {
+          void performDelete();
         },
       },
     ]);

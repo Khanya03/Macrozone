@@ -1,11 +1,13 @@
-import { addMeal } from '@/storage/meals';
+import { useMeals } from '@/storage/MealsContext';
 import { colors, globalStyles } from '@/style/global';
+import { validateMealDraft, type MealField } from '@/utils/validation';
 import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
 import { useState } from 'react';
 import {
   Alert,
   Platform,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -14,26 +16,41 @@ import {
 } from 'react-native';
 
 export default function AddMealScreen() {
+  const { addMeal } = useMeals();
   const [name, setName] = useState('');
   const [calories, setCalories] = useState('');
   const [protein, setProtein] = useState('');
   const [carbs, setCarbs] = useState('');
   const [fat, setFat] = useState('');
+  const [errors, setErrors] = useState<Partial<Record<MealField, string>>>({});
+  const [saving, setSaving] = useState(false);
+
+  const updateField = (
+    field: MealField,
+    value: string,
+    setter: (next: string) => void,
+  ) => {
+    setter(value);
+    setErrors((current) => {
+      if (!current[field]) return current;
+      const next = { ...current };
+      delete next[field];
+      return next;
+    });
+  };
 
   const handleAddMeal = async () => {
-    if (!name || !calories) {
-      Alert.alert('Error', 'Please enter a meal name and calories.');
+    const result = validateMealDraft({ name, calories, protein, carbs, fat });
+    if (!result.ok) {
+      setErrors(result.errors);
       return;
     }
 
+    setErrors({});
+    setSaving(true);
+
     try {
-      await addMeal({
-        name,
-        calories: Number(calories),
-        protein: Number(protein) || 0,
-        carbs: Number(carbs) || 0,
-        fat: Number(fat) || 0,
-      });
+      await addMeal(result.value);
 
       setName('');
       setCalories('');
@@ -54,65 +71,100 @@ export default function AddMealScreen() {
     } catch (error) {
       console.error('Failed to add meal', error);
       Alert.alert('Error', 'Could not save meal.');
+    } finally {
+      setSaving(false);
     }
   };
 
   return (
-    <View style={globalStyles.container}>
+    <ScrollView
+      style={globalStyles.container}
+      keyboardShouldPersistTaps='handled'
+      contentContainerStyle={styles.content}
+    >
       <Text style={globalStyles.title}>Add Meal</Text>
 
       <TextInput
-        style={styles.input}
+        style={[styles.input, errors.name ? styles.inputInvalid : null]}
         placeholder='Meal name'
         placeholderTextColor={colors.textSecondary}
         value={name}
-        onChangeText={setName}
+        onChangeText={(value) => updateField('name', value, setName)}
+        editable={!saving}
+        maxLength={80}
       />
+      <FieldError message={errors.name} />
 
       <TextInput
-        style={styles.input}
+        style={[styles.input, errors.calories ? styles.inputInvalid : null]}
         placeholder='Calories'
         placeholderTextColor={colors.textSecondary}
-        keyboardType='numeric'
+        keyboardType='decimal-pad'
         value={calories}
-        onChangeText={setCalories}
+        onChangeText={(value) => updateField('calories', value, setCalories)}
+        editable={!saving}
       />
+      <FieldError message={errors.calories} />
 
       <View style={styles.row}>
-        <TextInput
-          style={[styles.input, styles.rowInput]}
-          placeholder='Protein (g)'
-          placeholderTextColor={colors.textSecondary}
-          keyboardType='numeric'
-          value={protein}
-          onChangeText={setProtein}
-        />
-        <TextInput
-          style={[styles.input, styles.rowInput]}
-          placeholder='Carbs (g)'
-          placeholderTextColor={colors.textSecondary}
-          keyboardType='numeric'
-          value={carbs}
-          onChangeText={setCarbs}
-        />
-        <TextInput
-          style={[styles.input, styles.rowInput]}
-          placeholder='Fat (g)'
-          placeholderTextColor={colors.textSecondary}
-          keyboardType='numeric'
-          value={fat}
-          onChangeText={setFat}
-        />
+        <View style={styles.rowField}>
+          <TextInput
+            style={[styles.input, errors.protein ? styles.inputInvalid : null]}
+            placeholder='Protein (g)'
+            placeholderTextColor={colors.textSecondary}
+            keyboardType='decimal-pad'
+            value={protein}
+            onChangeText={(value) => updateField('protein', value, setProtein)}
+            editable={!saving}
+          />
+          <FieldError message={errors.protein} />
+        </View>
+        <View style={styles.rowField}>
+          <TextInput
+            style={[styles.input, errors.carbs ? styles.inputInvalid : null]}
+            placeholder='Carbs (g)'
+            placeholderTextColor={colors.textSecondary}
+            keyboardType='decimal-pad'
+            value={carbs}
+            onChangeText={(value) => updateField('carbs', value, setCarbs)}
+            editable={!saving}
+          />
+          <FieldError message={errors.carbs} />
+        </View>
+        <View style={styles.rowField}>
+          <TextInput
+            style={[styles.input, errors.fat ? styles.inputInvalid : null]}
+            placeholder='Fat (g)'
+            placeholderTextColor={colors.textSecondary}
+            keyboardType='decimal-pad'
+            value={fat}
+            onChangeText={(value) => updateField('fat', value, setFat)}
+            editable={!saving}
+          />
+          <FieldError message={errors.fat} />
+        </View>
       </View>
 
-      <TouchableOpacity style={styles.button} onPress={handleAddMeal}>
-        <Text style={styles.buttonText}>Add Meal</Text>
+      <TouchableOpacity
+        style={[styles.button, saving ? styles.buttonDisabled : null]}
+        onPress={handleAddMeal}
+        disabled={saving}
+      >
+        <Text style={styles.buttonText}>{saving ? 'Saving...' : 'Add Meal'}</Text>
       </TouchableOpacity>
-    </View>
+    </ScrollView>
   );
 }
 
+function FieldError({ message }: { message?: string }) {
+  if (!message) return null;
+  return <Text style={styles.error}>{message}</Text>;
+}
+
 const styles = StyleSheet.create({
+  content: {
+    paddingBottom: 40,
+  },
   input: {
     backgroundColor: colors.surface,
     color: colors.text,
@@ -120,12 +172,22 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     fontSize: 16,
     marginTop: 16,
+    borderWidth: 1,
+    borderColor: 'transparent',
+  },
+  inputInvalid: {
+    borderColor: colors.alert,
+  },
+  error: {
+    color: colors.alert,
+    fontSize: 13,
+    marginTop: 6,
   },
   row: {
     flexDirection: 'row',
     gap: 10,
   },
-  rowInput: {
+  rowField: {
     flex: 1,
   },
   button: {
@@ -134,6 +196,9 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     alignItems: 'center',
     marginTop: 24,
+  },
+  buttonDisabled: {
+    opacity: 0.6,
   },
   buttonText: {
     color: colors.background,
