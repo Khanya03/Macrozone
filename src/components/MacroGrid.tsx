@@ -1,12 +1,14 @@
+import { formatGoalNumber, type MacroGoals } from '@/storage/goals';
 import { Meal } from '@/storage/meals';
 import { StyleSheet, View } from 'react-native';
 import MacroCard from './MacroCard';
 
 type MacroGridProps = {
   meals: Meal[];
+  goals: MacroGoals;
 };
 
-export default function MacroGrid({ meals }: MacroGridProps) {
+export default function MacroGrid({ meals, goals }: MacroGridProps) {
   const totals = meals.reduce(
     (acc, meal) => ({
       calories: acc.calories + meal.calories,
@@ -22,25 +24,25 @@ export default function MacroGrid({ meals }: MacroGridProps) {
       <MacroCard
         label='Calories'
         value={`${totals.calories}`}
-        goal='2,000'
+        goal={formatGoalNumber(goals.calories)}
         color='#ff6b6b'
       />
       <MacroCard
         label='Protein'
         value={`${totals.protein}g`}
-        goal='150g'
+        goal={`${formatGoalNumber(goals.protein)}g`}
         color='#4ecdc4'
       />
       <MacroCard
         label='Carbs'
         value={`${totals.carbs}g`}
-        goal='250g'
+        goal={`${formatGoalNumber(goals.carbs)}g`}
         color='#ffd93d'
       />
       <MacroCard
         label='Fat'
         value={`${totals.fat}g`}
-        goal='65g'
+        goal={`${formatGoalNumber(goals.fat)}g`}
         color='#6bcb77'
       />
     </View>

@@ -3,38 +3,15 @@ import HomeHeader from '@/components/HomeHeader';
 import MacroGrid from '@/components/MacroGrid';
 import RecentMeals from '@/components/RecentMeals';
 import ReminderToggle from '@/components/ReminderToggle';
-import { getMeals, Meal } from '@/storage/meals';
-import { globalStyles } from '@/style/global';
-import { useFocusEffect } from 'expo-router';
-import React, { useCallback, useEffect, useState } from 'react';
-import { ScrollView, Text, View } from 'react-native';
+import { useGoals } from '@/storage/GoalsContext';
+import { useMeals } from '@/storage/MealsContext';
+import { colors, globalStyles } from '@/style/global';
+import { router } from 'expo-router';
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 export default function HomeScreen() {
-  const [meals, setMeals] = useState<Meal[]>([]);
-
-  const loadMeals = async () => {
-    const data = await getMeals();
-    setMeals(data);
-    console.log('Loaded meals:', data);
-  };
-
-  useFocusEffect(
-    useCallback(() => {
-      loadMeals();
-    }, []),
-  );
-
-  useEffect(() => {
-    const handler = () => loadMeals();
-    if (typeof window !== 'undefined' && 'addEventListener' in window) {
-      window.addEventListener('mealsChanged', handler as EventListener);
-    }
-    return () => {
-      if (typeof window !== 'undefined' && 'removeEventListener' in window) {
-        window.removeEventListener('mealsChanged', handler as EventListener);
-      }
-    };
-  }, []);
+  const { meals } = useMeals();
+  const { goals } = useGoals();
 
   return (
     <ScrollView style={globalStyles.container}>
@@ -42,10 +19,30 @@ export default function HomeScreen() {
         <Text style={globalStyles.title}>MacroZone</Text>
       </View>
       <HomeHeader meals={meals} />
-      <MacroGrid meals={meals}/>
+      {goals ? <MacroGrid meals={meals} goals={goals} /> : null}
+      <TouchableOpacity
+        onPress={() => router.push('/goals')}
+        style={styles.editGoals}
+        accessibilityRole='button'
+        accessibilityLabel='Edit daily goals'
+      >
+        <Text style={styles.editGoalsText}>Edit daily goals</Text>
+      </TouchableOpacity>
       <CopyButton meals={meals} />
       <ReminderToggle />
-      <RecentMeals meals={meals} onDelete={loadMeals} />
+      <RecentMeals meals={meals} />
     </ScrollView>
   );
 }
+
+const styles = StyleSheet.create({
+  editGoals: {
+    alignSelf: 'flex-start',
+    marginTop: 12,
+  },
+  editGoalsText: {
+    color: colors.primary,
+    fontSize: 15,
+    fontWeight: '600',
+  },
+});

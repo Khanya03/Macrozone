@@ -4,8 +4,9 @@ A mobile app for tracking daily macronutrients (calories, protein, carbs, and fa
 
 ## Features
 
-- **Log meals** — add a meal with its calories, protein, carbs, and fat
-- **Daily totals at a glance** — a macro grid on the home screen sums up everything logged for the day against daily goals
+- **Log meals** — add a meal with its calories, protein, carbs, and fat. The form checks the name and amounts before saving
+- **Daily totals at a glance** — a macro grid on the home screen sums up everything logged for the day against your daily goals
+- **Custom daily goals** — set calorie, protein, carb, and fat targets on this device. Defaults are 2,000 calories, 150g protein, 250g carbs, and 65g fat
 - **Recent meals & full history** — see your latest meals on the home screen, or browse the full list on a dedicated screen
 - **Delete meals** — long-press (or click, on web) any meal to remove it
 - **Share / copy summary** — share your daily macro summary via the native share sheet, or copy it straight to the clipboard
@@ -22,6 +23,13 @@ A mobile app for tracking daily macronutrients (calories, protein, carbs, and fa
 - expo-notifications, expo-haptics, expo-clipboard for native device features
 
 ## Project structure
+
+- `src/app` — screens and expo-router layouts
+- `src/components` — meal and macro UI
+- `src/storage` — AsyncStorage helpers and the meals/goals React context
+- `src/style` — shared colors and styles
+- `src/utils` — form validation and notification helpers
+- `src/types` — ambient declarations
 
 ## Getting started
 
@@ -45,11 +53,13 @@ A mobile app for tracking daily macronutrients (calories, protein, carbs, and fa
 
 ## What I built / learned
 
-This project was built to practice core mobile development concepts: file-based navigation with expo-router, local data persistence with AsyncStorage, native device APIs (notifications, haptics, clipboard, share), and structuring a React Native app with clean separation between UI components, storage logic, and styling.
+This project was built to practice core mobile development concepts: file-based navigation with expo-router, local data persistence with AsyncStorage, shared meal and goal state with React Context, native device APIs (notifications, haptics, clipboard, share), and structuring a React Native app with clean separation between UI components, storage logic, and styling.
 
 ## Roadmap / possible improvements
 
-- Replace the custom `mealsChanged` event hack with React Context for state updates
-- Add input validation on the Add Meal form
-- Add unit tests for the storage layer
-- Custom daily macro goals (currently hardcoded)
+The earlier polish items are in place:
+
+- Meal list updates go through React Context
+- The Add Meal form validates input before saving
+- Daily macro goals are editable and stored on device
+- The storage layer is covered by unit tests (`npm test`)

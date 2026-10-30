@@ -4,10 +4,9 @@ import MealItem from './MealItem';
 
 type RecentMealsProps = {
   meals: Meal[];
-  onDelete: () => void;
 };
 
-export default function RecentMeals({ meals, onDelete }: RecentMealsProps) {
+export default function RecentMeals({ meals }: RecentMealsProps) {
   return (
     <View style={{ marginTop: 30 }}>
       <Text style={styles.sectionTitle}>Recent Meals</Text>
@@ -25,7 +24,6 @@ export default function RecentMeals({ meals, onDelete }: RecentMealsProps) {
               protein={meal.protein}
               carbs={meal.carbs}
               fat={meal.fat}
-              onDelete={onDelete}
             />
           ))
       )}
