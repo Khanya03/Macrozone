@@ -63,3 +63,7 @@ The earlier polish items are in place:
 - The Add Meal form validates input before saving
 - Daily macro goals are editable and stored on device
 - The storage layer is covered by unit tests (`npm test`)
+- ## About me
+
+- Built by Lisakhanya Mpahla (Khanya03). Portfolio: https://khanya03.github.io
+- 
